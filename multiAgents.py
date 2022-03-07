@@ -313,7 +313,7 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
     def expectimax(self, gameState: GameState, currDepth, agentIndex):
         agentIndex = agentIndex % gameState.getNumAgents()
 
-        print("Depth: " + str(currDepth) + " AgentIndex: " + str(agentIndex))
+        #print("Depth: " + str(currDepth) + " AgentIndex: " + str(agentIndex))
         actionsForThisAgent = gameState.getLegalActions(agentIndex)
 
         if agentIndex == 0:
@@ -378,10 +378,62 @@ def betterEvaluationFunction(currentGameState: GameState):
     Your extreme ghost-hunting, pellet-nabbing, food-gobbling, unstoppable
     evaluation function (question 5).
 
-    DESCRIPTION: <write something here so we know what you did>
+    DESCRIPTION: <This is an improved evaluation function that uses currentGameState instead of actions. It prioritizes running from the ghosts and eating the closest food and capsules.
+    It motivates the pacman to chase the ghosts when their scaredTimer is bigger than 0.>
     """
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    newPos = currentGameState.getPacmanPosition()
+    newFood = currentGameState.getFood()
+    newGhostStates = currentGameState.getGhostStates()
+    newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
+
+    foodCount = currentGameState.getNumFood()
+    newCapsules = currentGameState.getCapsules()
+
+    distanceToGhosts = []
+
+    for i in range(len(newGhostStates)):
+        distanceToGhosts.append(manhattanDistance(newPos, newGhostStates[i].getPosition()))
+
+    distanceToClosestGhost = min(distanceToGhosts)
+
+    distanceToFoods = []
+    distanceToClosestFood = 0
+
+    for i in range(len(newFood.asList())):
+        distanceToFoods.append(manhattanDistance(newPos, newFood.asList()[i]))
+
+    if (len(distanceToFoods) > 0):
+        distanceToClosestFood = min(distanceToFoods)
+
+    # print("Closest Ghost: " + str(distanceToClosestGhost))
+    # print("New Pos: ")
+    # print(newPos)
+    # print("New Food: ")
+    # print(newFood.asList())
+    # print("New Capsules: ")
+    # print(newCapsules)
+    # print("New GhostStates: ")
+    # print(newGhostStates[0])
+    # print("New ScaredTimes: ")
+    # print(newScaredTimes)
+
+    smallestScareTime = min(newScaredTimes)
+    if smallestScareTime != 0:
+        distanceToClosestGhost = -distanceToClosestGhost * 10
+
+    distanceToCapsules = []
+    distanceToClosestCapsule = 0
+
+    for i in range(len(newCapsules)):
+        distanceToCapsules.append(manhattanDistance(newPos, newCapsules[i]))
+
+    if (len(distanceToCapsules) > 0):
+        distanceToClosestCapsule = min(distanceToCapsules)
+
+    capsuleCount = len(newCapsules)
+
+    return currentGameState.getScore() - distanceToClosestFood - distanceToClosestCapsule + distanceToClosestGhost - 10 * foodCount - 1000 * capsuleCount
 
 # Abbreviation
 better = betterEvaluationFunction
