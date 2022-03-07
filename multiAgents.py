@@ -157,6 +157,39 @@ class MinimaxAgent(MultiAgentSearchAgent):
     """
     Your minimax agent (question 2)
     """
+    def minimax(self, gameState: GameState, currDepth, agentIndex):
+        agentIndex = agentIndex % gameState.getNumAgents()
+
+        #print("Depth: " + str(currDepth) + " AgentIndex: " + str(agentIndex))
+        actionsForThisAgent = gameState.getLegalActions(agentIndex)
+
+        if agentIndex == 0:
+            currDepth += 1
+
+        if gameState.isLose() or gameState.isWin() or currDepth == self.depth:
+            return self.evaluationFunction(gameState)
+
+        if agentIndex == 0:
+            firstSuccessor = gameState.generateSuccessor(agentIndex, actionsForThisAgent[0])
+            maxValue = self.minimax(firstSuccessor, currDepth, agentIndex + 1)
+
+            for i in range(len(actionsForThisAgent) - 1):
+                successor = gameState.generateSuccessor(agentIndex, actionsForThisAgent[i + 1])
+                if self.minimax(successor, currDepth, agentIndex + 1) > maxValue:
+                    maxValue = self.minimax(successor, currDepth,  agentIndex + 1)
+
+            return maxValue
+        else:
+            firstSuccessor = gameState.generateSuccessor(agentIndex, actionsForThisAgent[0])
+            minValue = self.minimax(firstSuccessor, currDepth, agentIndex + 1)
+
+            for i in range(len(actionsForThisAgent) - 1):
+                successor = gameState.generateSuccessor(agentIndex, actionsForThisAgent[i + 1])
+                if self.minimax(successor, currDepth, agentIndex + 1) < minValue:
+                    minValue = self.minimax(successor, currDepth, agentIndex + 1)
+
+            return minValue
+
 
     def getAction(self, gameState: GameState):
         """
@@ -182,7 +215,20 @@ class MinimaxAgent(MultiAgentSearchAgent):
         Returns whether or not the game state is a losing state
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        actionsForThisAgent = gameState.getLegalActions(0)
+        currDepth = 0
+
+        firstSuccessor = gameState.generateSuccessor(0, actionsForThisAgent[0])
+        bestMinimaxValue = self.minimax(firstSuccessor, currDepth, 1)
+        bestAction = actionsForThisAgent[0]
+
+        for i in range(len(actionsForThisAgent) - 1):
+            successor = gameState.generateSuccessor(0, actionsForThisAgent[i+1])
+            if self.minimax(successor, currDepth, 1) > bestMinimaxValue:
+                bestMinimaxValue = self.minimax(successor, currDepth, 1)
+                bestAction = actionsForThisAgent[i+1]
+
+        return bestAction
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
     """
